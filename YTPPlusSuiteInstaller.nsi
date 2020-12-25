@@ -18,7 +18,6 @@
 
   ;Default installation folder
   InstallDir "$APPDATA\YTPPlusSuite"
-  
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\YTPPlusSuite" ""
 
@@ -51,10 +50,8 @@
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
-  
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
-  
 ;--------------------------------
 ;Languages
  
@@ -94,62 +91,52 @@ Section "Chocolatey" SecChocolatey ;https://gist.github.com/jstine35/d46e7c61cae
     ${EndIf}
   ${EndIf}
 
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
+  nsExec::ExecToLog "cmd /c refreshenv"
 
 SectionEnd
 
 Section "Git for Windows" SecGit
-  
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
 
-  nsExec::ExecToLog "choco install git -y --force"
+  nsExec::ExecToLog 'cmd /c choco upgrade git -y --params "/NoShellIntegration /GitOnlyOnPath"'
+  nsExec::ExecToLog "cmd /c refreshenv"
 
 SectionEnd
 
 Section "NodeJS" SecNodejs
-  
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
 
-  nsExec::ExecToLog "choco install nodejs-lts -y --force"
-
+  nsExec::ExecToLog 'cmd /c choco upgrade nodejs -y'
+  nsExec::ExecToLog "cmd /c refreshenv"
   nsExec::ExecToLog "npm install --global --production windows-build-tools --vs2015"
 
 SectionEnd
 
 Section "FFmpeg" SecFfmpeg
-  
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
 
-  nsExec::ExecToLog "choco install ffmpeg -y --force"
+  nsExec::ExecToLog 'cmd /c choco upgrade ffmpeg -y'
 
 SectionEnd
 
 Section "MediaInfo" SecMediainfo
-  
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
 
-  nsExec::ExecToLog "choco install mediainfo -y --force"
+  nsExec::ExecToLog 'cmd /c choco upgrade mediainfo -y'
 
 SectionEnd
 
 Section "LOVE" SecLove
 
-  nsExec::ExecToLog "choco feature enable -n allowGlobalConfirmation"
-
-  nsExec::ExecToLog "choco install love -y --force"
+  nsExec::ExecToLog 'cmd /c choco upgrade love -y'
 
 SectionEnd
 
 Section "ytp+ cli" SecCli
 
   SetOutPath "$INSTDIR\YTPPlusCLI"
-  
   IfFileExists "$INSTDIR\YTPPlusCLI\version.txt" +2 0
   nsExec::ExecToLog "git clone https://github.com/YTP-Plus/YTPPlusCLI.git $INSTDIR\YTPPlusCLI"
 
   nsExec::ExecToLog "git pull origin main"
 
-  nsExec::ExecToLog "cmd /c npm install $INSTDIR\YTPPlusCLI"
+  nsExec::ExecToLog 'cmd /c npm install $INSTDIR\YTPPlusCLI'
 
 SectionEnd
 
@@ -162,7 +149,7 @@ Section "ytp+ studio" SecStudio
 
   nsExec::ExecToLog 'curl -L --output "$INSTDIR\windows.zip" --url "https://github.com/YTP-Plus/YTPPlusStudio/releases/latest/download/windows.zip"'
 
-  nsExec::ExecToLog 'tar -xvf "$INSTDIR\windows.zip" --directory "$INSTDIR\YTPPlusStudio" --overwrite'
+  nsExec::ExecToLog 'tar -xvf "$INSTDIR\windows.zip" --directory "$INSTDIR\YTPPlusStudio"'
 
   ;Make junction from CLI
   IfFileExists "$INSTDIR\YTPPlusCLI" 0 +2
@@ -181,7 +168,6 @@ Section /o "ytp+ studio Source" SecStudioSource
 
   IfFileExists "$INSTDIR\YTPPlusStudioSource\main.lua" +2 0
   nsExec::ExecToLog "git clone https://github.com/YTP-Plus/YTPPlusStudio.git $INSTDIR\YTPPlusStudioSource"
-  
   nsExec::ExecToLog "git pull origin master --rebase $INSTDIR\YTPPlusStudioSource"
 
   ;Make junction from CLI
@@ -189,18 +175,6 @@ Section /o "ytp+ studio Source" SecStudioSource
   ${CreateJunction} "$INSTDIR\YTPPlusStudioSource\YTPPlusCLI" "$INSTDIR\YTPPlusCLI" 
 
 SectionEnd
-
-;Section "Uninstaller" SecUninstall
-
-  ;SetOutPath "$INSTDIR"
-  
-  ;;Store installation folder
-  ;WriteRegStr HKCU "Software\YTPPlusSuite" "" $INSTDIR
-
-  ;;Create uninstaller
-  ;WriteUninstaller "$INSTDIR\Uninstall.exe"
-
-;SectionEnd
 
 ;--------------------------------
 ;Descriptions
@@ -217,8 +191,6 @@ SectionEnd
   LangString DESC_SecStudio ${LANG_ENGLISH} "Recommended for basic users. ytp+ studio is a LOVE-based UI front-end for ytp+ cli."
   LangString DESC_SecStudioSource ${LANG_ENGLISH} "Provided for advanced users only. This clones or updates ytp+ studio's source code."
 
-  ;LangString DESC_SecUninstall ${LANG_ENGLISH} "Recommended for uninstallation of all ytp+ suite applications. This generates an uninstall executable."
-
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecChocolatey} $(DESC_SecChocolatey)
@@ -232,23 +204,10 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${SecStudio} $(DESC_SecStudio)
     !insertmacro MUI_DESCRIPTION_TEXT ${SecStudioSource} $(DESC_SecStudioSource)
 
-    ;!insertmacro MUI_DESCRIPTION_TEXT ${SecUninstall} $(DESC_SecUninstall)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
-;Uninstaller Section
-
-;Section "Uninstall"
-
-  ;;ADD YOUR OWN FILES HERE...
-
-  ;Delete "$INSTDIR\Uninstall.exe"
-
-  ;RMDir "$INSTDIR"
-
-  ;DeleteRegKey /ifempty HKCU "Software\YTPPlusSuite"
-
-;SectionEnd
+;Functions
 
 Function .onInit
   ${If} ${AtMostBuild} 17063
