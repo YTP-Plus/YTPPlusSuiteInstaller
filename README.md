@@ -4,7 +4,7 @@ Uses [NSIS](https://nsis.sourceforge.io/Download).
 ## The installer keeps closing on me!
 Try disabling IPv6 and install again.
 
-![Control Panel\Network and Internet\Network Connections]([docs/ipv6.png)
+![Control Panel\Network and Internet\Network Connections](docs/ipv6.png)
 
 ## How do I open ytp+ studio?
 Check in the start menu under ``ytp+ suite``.
